@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090d18"><title>Don't Tell — Web Proxy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{color-scheme:dark;--bg:#090d18;--panel:#111827;--line:#263247;--muted:#91a0b8;--text:#f4f7ff;--accent:#8b7cff;--cyan:#5ce1e6}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 15%,#1b2140 0%,#0b1020 42%,var(--bg) 78%);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;flex-direction:column}
+    header{height:76px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,6vw,84px);border-bottom:1px solid #ffffff12;background:#090d1870;backdrop-filter:blur(14px)}
+    .brand{display:flex;align-items:center;gap:11px;font:700 21px 'Space Grotesk';letter-spacing:-.7px}.logo{width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--cyan));display:grid;place-items:center;color:#0b1020;font-size:19px;box-shadow:0 0 26px #8b7cff55}
+    .tag{font-size:12px;color:#b8c4d8;border:1px solid #ffffff1c;padding:7px 11px;border-radius:99px}
+    main{width:min(900px,calc(100% - 36px));margin:0 auto;flex:1;display:flex;flex-direction:column;align-items:center;padding:clamp(76px,13vh,132px) 0 70px;text-align:center}
+    .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:2.5px;color:var(--cyan);font-weight:700}.title{font:700 clamp(42px,7vw,70px)/1.05 'Space Grotesk';letter-spacing:-3px;margin:20px 0 16px}.title span{background:linear-gradient(90deg,#a99eff,#65e5e7);background-clip:text;color:transparent}.sub{max-width:570px;color:var(--muted);font-size:16px;line-height:1.7;margin:0 0 36px}
+    form{width:min(720px,100%);display:flex;gap:9px;padding:9px;background:#141c2c;border:1px solid #34415a;border-radius:17px;box-shadow:0 18px 65px #0007;transition:.2s}form:focus-within{border-color:#8b7cff;box-shadow:0 0 0 4px #8b7cff20,0 18px 65px #0007}
+    input{min-width:0;flex:1;background:transparent;border:0;outline:0;color:white;padding:0 13px;font:15px 'DM Sans'}input::placeholder{color:#74839b}button{border:0;border-radius:11px;padding:0 25px;min-height:50px;background:linear-gradient(110deg,#9484ff,#66dfe2);color:#101426;font:700 14px 'DM Sans';cursor:pointer;transition:transform .15s,filter .15s}button:hover{transform:translateY(-1px);filter:brightness(1.08)}
+    .hint{font-size:12px;color:#78869e;margin:13px 0 48px}.quick-title{font-size:12px;color:#8795ad;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:15px}.quick{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.quick button{background:#141c2c;border:1px solid #2b3850;color:#c9d4e8;min-height:42px;padding:0 16px;font-weight:500}.quick button:hover{border-color:#8b7cff;background:#1a2340}
+    .status{display:none;margin-top:24px;width:min(720px,100%);padding:14px 16px;border:1px solid #34415a;border-radius:12px;background:#111827;color:#c7d2e5;text-align:left;font-size:13px;line-height:1.5}.status.show{display:block}.status a{color:#9e93ff}
+    footer{padding:22px;text-align:center;color:#64728a;font-size:12px;border-top:1px solid #ffffff10}footer span{color:#91a0b8}
+    @media(max-width:560px){header{height:66px}.tag{font-size:10px}.title{letter-spacing:-2px}form{flex-direction:column;padding:8px}input{height:48px}button{width:100%}.hint{margin-bottom:38px}}
+  </style>
+</head>
+<body>
+  <header><div class="brand"><div class="logo">✦</div>Don't Tell</div><div class="tag">WEB ACCESS · BETA</div></header>
+  <main>
+    <div class="eyebrow">A different way to explore</div>
+    <h1 class="title">The web, <span>your way.</span></h1>
+    <p class="sub">Enter a website address below to open it through the Don't Tell demo proxy. Simple, quick, and made to fit your screen.</p>
+    <form id="proxyForm"><input id="url" type="text" inputmode="url" autocomplete="url" placeholder="Enter a URL (e.g. example.com)" aria-label="Website URL" required><button type="submit">Launch ↗</button></form>
+    <div class="hint">Tip: you can enter a domain or a full https:// address</div>
+    <div class="quick-title">Quick launch</div>
+    <div class="quick">
+      <button data-url="https://example.com">Example</button><button data-url="https://www.wikipedia.org">Wikipedia</button><button data-url="https://www.mozilla.org">Mozilla</button>
+    </div>
+    <div class="status" id="status" role="status"></div>
+  </main>
+  <footer> <span>Don't Tell</span> · Made and owned by Melvin Mendez</footer>
+  <script>
+    const form=document.querySelector('#proxyForm'),input=document.querySelector('#url'),status=document.querySelector('#status');
+    function launch(value){let raw=value.trim();if(!raw)return;let url=/^[a-z][a-z0-9+.-]*:\/\//i.test(raw)?raw:'https://'+raw;try{const parsed=new URL(url);if(!['http:','https:'].includes(parsed.protocol))throw Error();location.href='/api/proxy?url='+encodeURIComponent(parsed.href)}catch{status.textContent='Please enter a valid website address.';status.classList.add('show')}}
+    form.addEventListener('submit',e=>{e.preventDefault();launch(input.value)});
+    document.querySelectorAll('[data-url]').forEach(b=>b.addEventListener('click',()=>launch(b.dataset.url)));
+  </script>
+</body></html>
