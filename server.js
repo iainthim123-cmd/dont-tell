@@ -83,7 +83,7 @@ function requireLogin(req, res, next) {
       if (safeEqual(user, PROXY_USER) && safeEqual(pass, PROXY_PASSWORD)) return next();
     } catch {}
   }
-  res.set('WWW-Authenticate', 'Basic realm="DON’T TELL", charset="UTF-8"');
+ res.set('WWW-Authenticate', 'Basic realm="DONT TELL", charset="UTF-8"');
   return res.status(401).send('Sign in is required to use DON’T TELL.');
 }
 
